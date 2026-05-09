@@ -1,0 +1,1112 @@
+Animotion - Project Context File
+Version: 1.0
+Purpose: AI Initialization + Development Continuation
+Generated for: Continued development across AI sessions
+Contact: takuwhy@gmail.com
+Footer credit: Made by Posh :)
+
+================================================================================
+
+TABLE OF CONTENTS
+
+  1.  Project Overview
+  2.  Core Features
+  3.  Tech Stack
+  4.  Current Systems Implemented
+  5.  Systems Being Improved / Recent Changes
+  6.  Animation Editor Spec
+  7.  AI Coach System
+  8.  Learning Structure
+  9.  Design Style
+  10. Project Goal
+  11. Important Rules for Future Development
+  12. File Structure Reference
+  13. Environment Variables
+  14. Database Schema Summary
+
+================================================================================
+
+
+SECTION 1 - PROJECT OVERVIEW
+================================================================================
+
+Animotion is a gamified animation learning platform designed to teach animation
+through doing, not watching. Users learn the 12 principles of animation and
+specialised skills across 2D, 3D, VFX, Cinematography, and Motion Graphics,
+progressing through an XP-based game system while building real animations in
+a built-in editor.
+
+PURPOSE:
+Make animation education accessible, engaging, and rewarding. Most animation
+courses are passive (watch tutorials). Animotion forces active participation:
+complete interactive lessons, submit animations for AI feedback, build projects
+in the editor, and compete on the leaderboard.
+
+WHAT MAKES IT UNIQUE:
+- Combines gamified learning (Duolingo-style) with a real creative tool
+  (animation editor)
+- AI coach that tracks 12 individual skills and gives structured, personalised
+  feedback
+- Every feature is interconnected: lessons improve skills, skills unlock
+  recommendations, editor exports feed the AI coach
+- Completely free platform
+
+
+================================================================================
+
+
+SECTION 2 - CORE FEATURES
+================================================================================
+
+------------------------------------------------------------
+GAMIFIED LEARNING SYSTEM
+------------------------------------------------------------
+
+XP is earned from: completing lessons, passing quizzes, submitting tasks,
+watching videos, chatting with the AI coach, and saving projects.
+
+Levels are calculated from XP using the formula:
+  level = floor(sqrt(xp / 90))
+
+9-TIER RANK SYSTEM (in order):
+  1. Bronze        -       0 XP
+  2. Silver        -     500 XP
+  3. Gold          -   1,500 XP
+  4. Platinum      -   4,000 XP
+  5. Diamond       -   9,000 XP
+  6. Master        -  18,000 XP
+  7. Pro Animator  -  35,000 XP
+  8. Grandmaster   -  60,000 XP
+  9. God-like      - 100,000 XP (nearly impossible)
+
+Daily Quests: 7 quests per day, each awarding XP on completion.
+Level-up modal with animated celebration when crossing a level threshold.
+Floating XP toasts appear at the mouse position when XP is earned.
+
+------------------------------------------------------------
+DUOLINGO-STYLE LESSON PROGRESSION
+------------------------------------------------------------
+
+Lessons are organised into Worlds > Sections > Lessons.
+Worlds unlock sequentially (complete all lessons in World N to unlock N+1).
+Within a world, sections and lessons unlock progressively.
+
+Each lesson has 5 steps:
+  1. Intro
+  2. Content
+  3. Quiz
+  4. Task
+  5. Done
+
+Quizzes are multi-question arrays (3-5 questions). Score-based bonus XP
+is awarded per quiz. Task requires minimum 5-character response before
+submission. Completing a lesson dispatches skill deltas defined per-lesson
+in the curriculum.
+
+------------------------------------------------------------
+2D AND 3D ANIMATION EDITOR
+------------------------------------------------------------
+
+Canvas-based frame-by-frame 2D animation (580x360px default).
+Layers panel: add, rename (double-click), toggle visibility, delete layers.
+Timeline: add/delete frames, mark keyframes, scrub via click.
+Onion skin toggle.
+ALT-based keybind system (fully customisable in editor settings panel).
+Export modal: MP4 (via MediaRecorder) or GIF (via gif.js CDN), with
+resolution, FPS, and quality settings plus a progress bar.
+Project save/load via Supabase (animation_projects table).
+Auto-save every 15 seconds to localStorage and Supabase.
+Project settings panel: resolution, FPS, background colour, duration.
+
+------------------------------------------------------------
+AI COACH
+------------------------------------------------------------
+
+Powered by Claude (Anthropic API), proxied through /api/chat server-side route.
+Persona: "Ani" - friendly, encouraging, expert in all 12 Disney animation
+principles.
+Returns structured skillUpdate JSON block in every response.
+Parses skill deltas and dispatches GAIN_SKILLS to global state.
+Displays 12 animated skill bars in the coach sidebar.
+Smart suggestions: recommends specific lessons based on weakest skills.
+Chat history maintained in local component state for session.
+
+------------------------------------------------------------
+VIDEO-BASED LESSONS
+------------------------------------------------------------
+
+All lesson content includes a YouTube embed via the YouTubeEmbed component.
+Lazy-load: shows thumbnail with play button, plays inline on click.
+Videos pulled from the curriculum's videoId field (extracted from full YouTube
+URLs via the yt() helper function).
+Video Library page (/videos) aggregates all curriculum videos by world/section
+with category filter tabs.
+Watching a video awards +20 XP.
+
+------------------------------------------------------------
+SKILL SYSTEM
+------------------------------------------------------------
+
+12 skills:
+  - Timing and Spacing
+  - Squash and Stretch
+  - Anticipation
+  - Follow Through
+  - Weight and Physics
+  - Smoothness
+  - Creativity
+  - Consistency
+  - Cinematography
+  - Motion Design
+  - VFX Understanding
+  - Storytelling
+
+All skills start at 0 for every new user. No preloaded data.
+
+Skills increase through:
+  - AI coach conversations (parsed from skillUpdate JSON)
+  - Lesson completions (per-lesson skills object in curriculum)
+  - Quiz performance
+
+Each skill has a colour and icon defined in the SKILLS array in
+lib/curriculum.js.
+
+Skills are persisted to Supabase user_profiles.skills (jsonb) and
+localStorage.
+
+Profile page shows all 12 skill bars with level labels:
+  Novice > Beginner > Intermediate > Advanced > Master
+
+Strongest and weakest skill highlights shown on profile page.
+
+------------------------------------------------------------
+CREATOR HUB
+------------------------------------------------------------
+
+Dedicated page (/creator-hub) showcasing 10 animation educators.
+
+Creators included:
+  - Alan Becker
+  - Ben Marriott
+  - BaM Animation
+  - Motion Nations
+  - Alex Grigg
+  - Rakutos Animation
+  - TheDucky3D
+  - CG Boost
+  - Video Copilot
+  - Corridor Crew
+
+Each card shows: name, category badge, short description, Watch on YouTube
+button.
+Categories: 2D, 3D, VFX, Motion Graphics, General.
+Filter by category.
+
+------------------------------------------------------------
+LEADERBOARD
+------------------------------------------------------------
+
+Real users only - fetched from Supabase user_profiles table ordered by XP
+descending.
+If no users exist, shows empty state: "No players yet - be the first".
+No mock or hardcoded data.
+Current user is injected into the board and highlighted with a YOU badge.
+Podium display for top 3 (with correct 2nd/1st/3rd placement).
+Badge system reflects user's current rank tier.
+
+------------------------------------------------------------
+TUTORIAL SYSTEM (ONBOARDING)
+------------------------------------------------------------
+
+5-step modal overlay shown only when hasSeenTutorial is false.
+
+Steps:
+  1. Welcome
+  2. Lessons
+  3. Editor
+  4. XP and Ranks
+  5. AI Coach
+
+"Skip Tour" button dismisses immediately.
+"Let's Animate!" on final step closes modal.
+markTutorialSeen() sets hasSeenTutorial to true in state, persists to DB and
+localStorage. Never shown again after first completion.
+
+------------------------------------------------------------
+FOCUS MODE
+------------------------------------------------------------
+
+Toggle in top bar.
+Reduces sidebar opacity to 0.18.
+Adds animated wave SVG overlay at bottom of screen.
+Smooth transitions throughout.
+
+
+================================================================================
+
+
+SECTION 3 - TECH STACK
+================================================================================
+
+Framework:         Next.js 15 (App Router)
+Language:          JavaScript (JSX) - no TypeScript
+Styling:           Tailwind CSS 3 (custom config, no CDN)
+Auth and DB:       Supabase (@supabase/ssr, @supabase/supabase-js)
+Global State:      React Context + useReducer (lib/store.js)
+Animation Editor:  HTML5 Canvas API (no external library)
+AI:                Anthropic Claude API (server-side via /api/chat route)
+GIF Export:        gif.js (loaded from cdnjs CDN on demand)
+MP4 Export:        MediaRecorder API (browser-native)
+Fonts:             Nunito (Google Fonts, loaded in globals.css)
+Deployment:        Vercel
+
+
+================================================================================
+
+
+SECTION 4 - CURRENT SYSTEMS IMPLEMENTED
+================================================================================
+
+------------------------------------------------------------
+AUTHENTICATION
+------------------------------------------------------------
+
+Login page at /login with Google OAuth and email/password.
+Google OAuth redirects to /auth/callback/route.js which exchanges code for
+session.
+useAuth() hook in hooks/useAuth.js checks session, redirects to /login if
+unauthenticated, calls hydrateForUser() on login.
+Auth is Supabase-based. If Supabase env vars are placeholders, runs in demo
+mode (no real auth).
+
+------------------------------------------------------------
+DASHBOARD (/dashboard)
+------------------------------------------------------------
+
+Hero banner with rank progress bar, greeting, and "next rank" XP countdown.
+4 stat cards: Total XP, Level, Rank, Lessons Done.
+Daily quests (clickable, award XP on completion).
+"Continue Learning" card shows next unlocked lesson and world progress.
+Recent activity: last completed lesson, editor quick-open.
+Skill tip: highlights weakest skill and links to AI Coach.
+XP bar with level display.
+
+------------------------------------------------------------
+LESSON SYSTEM (/lessons and /progress)
+------------------------------------------------------------
+
+World selection > Section selection > Lesson cards.
+World unlock logic: complete all lessons in previous world.
+ActiveLesson component handles the 5-step flow.
+Multi-question quizzes with score-based bonus XP.
+Skill deltas from lesson.skills dispatched on completion.
+Progress Map (/progress) shows all lessons as interactive nodes in a zigzag
+layout.
+
+------------------------------------------------------------
+VIDEO LIBRARY (/videos)
+------------------------------------------------------------
+
+Pulls all lessons with videoId from ALL_LESSONS curriculum flat array.
+Category filter by world.
+Clicking "watch" awards +20 XP (once per video, tracked in local Set).
+YouTubeEmbed component: lazy thumbnail, click to play inline iframe.
+
+------------------------------------------------------------
+ANIMATION EDITOR (/editor)
+------------------------------------------------------------
+
+Full canvas drawing with brush/eraser tools.
+10-colour palette plus custom colour picker.
+Brush size slider.
+Frame timeline with keyframe markers.
+Layers panel (add, rename, toggle, delete).
+Play/pause with configurable FPS.
+Onion skinning.
+Undo/redo stack (20 levels deep).
+Auto-save every 15 seconds.
+Project name (double-click to rename inline).
+Save/load projects via Supabase.
+Export modal (MP4 default, GIF option).
+Keybind settings panel (ALT+key, fully customisable).
+
+------------------------------------------------------------
+UI THEME AND STRUCTURE
+------------------------------------------------------------
+
+Wii/Nintendo-inspired: soft whites, rounded corners, sky blue primary, playful
+typography.
+Dark mode via document.documentElement.classList.toggle('dark').
+All colours via Tailwind custom config (primary, primary-light, primary-dark,
+etc.).
+Global CSS classes: .card, .btn, .btn-primary, .btn-secondary, .field, .tag,
+.page.
+"Made by Posh :)" footer fixed bottom-right on all pages.
+
+
+================================================================================
+
+
+SECTION 5 - SYSTEMS BEING IMPROVED / RECENT CHANGES
+================================================================================
+
+------------------------------------------------------------
+FRESH USER START
+------------------------------------------------------------
+
+FRESH_STATE in lib/store.js has xp: 0, level: 1, completedLessons: [],
+and all skills at 0.
+hydrateForUser(uid, displayName) is called after login. Checks DB for existing
+profile, creates fresh profile if none exists.
+New profile trigger in Supabase (handle_new_user()) inserts clean row on signup.
+State scoped per user: localStorage key is animotion_u_{uid} to prevent data
+leaks between users.
+
+------------------------------------------------------------
+REAL LEADERBOARD
+------------------------------------------------------------
+
+Removed all hardcoded LEADERBOARD mock data from leaderboard page.
+Fetches from getLeaderboard() in lib/db.js which queries user_profiles table.
+Empty state shown if no users exist.
+Current user always displayed at their real position.
+
+------------------------------------------------------------
+AI COACH SKILL PROGRESSION
+------------------------------------------------------------
+
+System prompt instructs Claude to return <skillUpdate>{...}</skillUpdate> JSON
+in every response.
+Parser strips the tag from displayed message.
+Skill deltas dispatched via GAIN_SKILLS action.
+Delta badges appear on skill bars when updated.
+Weakest skills surface as lesson recommendations in the coach sidebar and on
+the dashboard.
+
+------------------------------------------------------------
+EDITOR IMPROVEMENTS
+------------------------------------------------------------
+
+Keybinds use ALT (not Ctrl):
+  - Alt+Z = Undo
+  - Alt+Y = Redo
+  - Alt+S = Save
+  - Alt+E = Export
+  - Alt+N = New Frame
+  - Alt+D = Duplicate Frame
+  - Alt+O = Onion Skin Toggle
+
+In-editor keybind customisation panel.
+Full export modal with format, resolution, FPS, quality, and progress bar.
+Project save with frame_data (base64 PNG per frame) stored in Supabase.
+Auto-save every 15 seconds.
+
+------------------------------------------------------------
+TUTORIAL ONBOARDING
+------------------------------------------------------------
+
+OnboardingModal shown on first login when hasSeenTutorial is false.
+5-step Duolingo-style walkthrough.
+Persisted to user_profiles.has_seen_tutorial.
+
+------------------------------------------------------------
+EXPANDED CURRICULUM
+------------------------------------------------------------
+
+5 worlds, each with multiple sections and lessons.
+All lessons include: YouTube video ID, multi-question quiz (3-5 questions),
+practical task, skill deltas.
+Total: 50+ lessons across 2D Animation, 3D Animation, VFX, Cinematography,
+and Motion Graphics.
+YouTube IDs extracted from real URLs using yt() helper function in curriculum.
+
+
+================================================================================
+
+
+SECTION 6 - ANIMATION EDITOR SPEC
+================================================================================
+
+Main file:  app/editor/page.jsx
+Hook file:  hooks/useEditor.js (useReducer-based, no external library)
+
+------------------------------------------------------------
+CANVAS
+------------------------------------------------------------
+
+Default size: 580x360px
+White background on init.
+Brush and eraser tools.
+Frame pixel data stored as base64 PNG per frame (frameData object keyed by
+frame ID).
+On frame switch: capture current canvas, then render stored data for new frame.
+
+------------------------------------------------------------
+LAYERS
+------------------------------------------------------------
+
+Add, delete, rename, toggle visibility.
+Active layer highlighted in panel.
+Double-click layer name to rename (inline input).
+Minimum 1 layer enforced.
+
+------------------------------------------------------------
+TIMELINE
+------------------------------------------------------------
+
+Frames as clickable buttons with frame number.
+Gold dot indicator on keyframe frames.
+Add/delete buttons per frame.
+Horizontal scroll for long timelines.
+Play/pause with interval-based frame stepping.
+
+------------------------------------------------------------
+KEYBINDS (ALT-BASED, ALL CUSTOMISABLE)
+------------------------------------------------------------
+
+Action                   Default Keybind
+------                   ---------------
+Play/Pause               Space
+Undo                     Alt+Z
+Redo                     Alt+Y
+Save                     Alt+S
+Export                   Alt+E
+New Frame                Alt+N
+Duplicate Frame          Alt+D
+Onion Skin Toggle        Alt+O
+Navigate Left/Right      Arrow Keys
+Brush Tool               B
+Eraser Tool              E
+Delete Frame             Delete or Backspace
+
+------------------------------------------------------------
+EXPORT SYSTEM
+------------------------------------------------------------
+
+MP4: via MediaRecorder + canvas.captureStream(fps)
+  - Exports as .mp4 or .webm depending on browser support
+
+GIF: via gif.js CDN (loaded on demand)
+
+Settings available in export modal:
+  - Resolution: 720p (1280x720), 1080p (1920x1080), 2K (2048x1024), Custom
+  - FPS: 24, 30, or 60
+  - Quality: Low, Medium, or High
+
+Export progress bar and estimated file size shown in modal.
+
+------------------------------------------------------------
+PROJECT SYSTEM
+------------------------------------------------------------
+
+Save: Captures all frames as base64, saves the following to Supabase
+animation_projects:
+  - frames
+  - frameData
+  - layers
+  - fps
+  - name
+  - bgColor
+  - width
+  - height
+
+Load: getProject(userId, projectId) returns full project, renders first
+frame to canvas.
+
+Delete: deleteProject(userId, projectId) enforces user ownership.
+
+Auto-save: setInterval every 15s calls handleSave(true) silently.
+
+Project name: double-click title to edit inline.
+
+
+================================================================================
+
+
+SECTION 7 - AI COACH SYSTEM
+================================================================================
+
+Main file:   app/coach/page.jsx
+API Route:   app/api/chat/route.js (server-side, keeps API key secret)
+
+------------------------------------------------------------
+HOW IT WORKS
+------------------------------------------------------------
+
+Step 1: User sends a message via the chat input.
+Step 2: Full conversation history sent to /api/chat via POST.
+Step 3: Server calls Anthropic API with system prompt + conversation history.
+Step 4: Response parsed for <skillUpdate> JSON tag.
+Step 5: Skill deltas extracted and dispatched via GAIN_SKILLS.
+Step 6: XP from skillUpdate.xp field dispatched via GAIN_XP.
+Step 7: Cleaned response (tag removed) displayed in chat.
+
+------------------------------------------------------------
+SYSTEM PROMPT SUMMARY
+------------------------------------------------------------
+
+Persona: "Ani", friendly animation coach.
+Expert in 12 Disney principles, timing, spacing, weight, 2D/3D animation,
+VFX, acting, and cinematography.
+Must return <skillUpdate> JSON after every response.
+Only increase relevant skills (0-15 per skill per response).
+XP field: 10-50 per response.
+Keep replies to 2-4 short paragraphs.
+
+------------------------------------------------------------
+SKILL UPDATE FORMAT
+------------------------------------------------------------
+
+<skillUpdate>
+{
+  "timing": 0,
+  "squash": 0,
+  "anticipation": 0,
+  "followThrough": 0,
+  "weight": 0,
+  "smoothness": 0,
+  "creativity": 0,
+  "consistency": 0,
+  "cinematography": 0,
+  "motionDesign": 0,
+  "vfx": 0,
+  "storytelling": 0,
+  "xp": 20
+}
+</skillUpdate>
+
+Only increase skills relevant to the conversation.
+Use values 0-15 per skill per message.
+XP should be 10-50 per message.
+
+------------------------------------------------------------
+UI COMPONENTS
+------------------------------------------------------------
+
+Chat interface with Mascot avatar ("Ani") showing mood states:
+  - happy
+  - thinking
+  - excited
+  - sad
+
+Animated typing indicator (3 pulsing dots).
+12 animated skill bars in sidebar panel with colour per skill and delta badge
+on update.
+Smart suggestions: top 3 weakest skills mapped to recommended lessons.
+Upload zone for animation file (UI ready, analysis logic is placeholder).
+Quick prompt buttons for common animation questions.
+
+
+================================================================================
+
+
+SECTION 8 - LEARNING STRUCTURE
+================================================================================
+
+Lessons are organised as: World > Section > Lesson
+
+All lesson data lives in lib/curriculum.js. The WORLDS array has this structure
+per world:
+
+  {
+    id,
+    title,
+    color,
+    icon,
+    unlockedByDefault,
+    desc,
+    sections: [
+      {
+        id,
+        title,
+        lessons: [
+          {
+            id,
+            title,
+            xp,
+            time,
+            diff,
+            icon,
+            desc,
+            content,       // multi-paragraph text
+            videoId,       // YouTube video ID (extracted via yt() helper)
+            quiz: [        // array of 3-5 questions
+              { q, opts: [], correct }
+            ],
+            task,          // written task prompt
+            skills: {      // skill deltas awarded on completion
+              timing: 10,
+              squash: 5,
+              // ...
+            }
+          }
+        ]
+      }
+    ]
+  }
+
+------------------------------------------------------------
+WORLDS AND CONTENT
+------------------------------------------------------------
+
+World 1: 2D Animation
+  Sections: Fundamentals, Movement, Advanced, Bonus
+  Content: 12 principles, timing, squash/stretch, bouncing ball, walk cycle,
+  anticipation, keyframes, weight, acting, polishing, bonus lessons
+
+World 2: 3D Animation
+  Sections: Fundamentals, Movement, Advanced, Bonus
+  Content: What is 3D, Blender basics, keyframes, graph editor, bouncing ball,
+  camera animation, rigging, character animation, physics, bonus lessons
+
+World 3: VFX
+  Sections: Fundamentals, Movement and Effects, Advanced, Bonus
+  Content: What is VFX, VFX vs CGI, After Effects basics, green screen, motion
+  tracking, text animation, explosions, lightning, compositing, bonus lessons
+
+World 4: Cinematography
+  Sections: Fundamentals, Camera Techniques, Advanced, Bonus
+  Content: What is cinematography, shot types, rule of thirds, lighting, camera
+  movement, depth of field, film blocking, colour theory, cinematic
+  composition, bonus lessons
+
+World 5: Motion Graphics
+  Sections: Fundamentals, Text and UI Animation, Advanced, Bonus
+  Content: What is motion graphics, After Effects, keyframes/easing, motion
+  design principles, text animation, logo animation, UI animation, transitions,
+  kinetic typography, looping, bonus lessons
+
+------------------------------------------------------------
+ALL_LESSONS FLAT ARRAY
+------------------------------------------------------------
+
+ALL_LESSONS is exported from lib/curriculum.js as:
+
+  export const ALL_LESSONS = WORLDS.flatMap(w =>
+    w.sections.flatMap(s =>
+      s.lessons.map(l => ({
+        ...l,
+        worldId: w.id,
+        worldTitle: w.title,
+        worldColor: w.color,
+        worldIcon: w.icon,
+        sectionId: s.id,
+        sectionTitle: s.title
+      }))
+    )
+  );
+
+This flat array is used everywhere lessons need to be listed, searched,
+or referenced without knowing which world or section they belong to.
+
+
+================================================================================
+
+
+SECTION 9 - DESIGN STYLE
+================================================================================
+
+INSPIRATION:
+Wii/Nintendo UI: soft, rounded, friendly, instantly readable, satisfying to
+interact with.
+
+------------------------------------------------------------
+COLOURS (Tailwind custom config)
+------------------------------------------------------------
+
+Primary:        #5B9CF6  (sky blue)   - main actions, active states, progress
+Primary Light:  #EBF2FF               - subtle backgrounds, hover states
+Primary Dark:   #3B7DE0               - hover on primary buttons
+Primary XL:     #F0F5FF               - page backgrounds
+Accent:         #9B7FEA  (purple)     - secondary accents, gradients
+Success:        #52C97C  (green)
+Warning:        #FFB347  (gold/amber)
+Danger:         #FF5757  (red)
+Pink:           #FF8FAB
+Teal:           #4ECDC4
+
+------------------------------------------------------------
+TYPOGRAPHY
+------------------------------------------------------------
+
+Font: Nunito (Google Fonts) - rounded, friendly, highly legible
+Weights used: 400 (regular), 600 (semibold), 700 (bold), 800 (extrabold),
+900 (black)
+Font size scale: 9px (labels) through 24px (hero headings)
+
+------------------------------------------------------------
+GLOBAL CSS CLASSES
+------------------------------------------------------------
+
+.card        - white background, rounded-2xl, border, soft shadow
+.btn         - base button styles
+.btn-primary - sky blue, white text, shadow
+.btn-secondary - light blue background, primary text
+.btn-danger  - red tint
+.field       - form input: light background, primary focus ring
+.tag         - pill-shaped label
+.page        - animate-fade-up applied to page root div
+
+------------------------------------------------------------
+ANIMATIONS
+------------------------------------------------------------
+
+Page transitions:   animate-fade-up (0.25s ease)
+Mascot:             animate-float (3.5s sine wave)
+Level-up modal:     animate-level-up (scale + rotate)
+XP toast:           animate-xp-pop (float upward, fade out)
+Node glow:          animate-node-glow (pulsing ring, progress map)
+Skill bars:         transition-[width] duration-700 smooth fill
+
+------------------------------------------------------------
+LAYOUT
+------------------------------------------------------------
+
+Sidebar:        250px fixed left, full viewport height
+Top bar:        54px fixed, left: 250px, right-aligned controls
+Main content:   marginLeft: 250px, paddingTop: 54px, max-width: 1200px
+Footer:         "Made by Posh :)" fixed bottom-right, 40% opacity
+Floating FAB:   Floating feedback button fixed bottom-right (above footer),
+                gradient background, opens FeedbackModal
+
+
+================================================================================
+
+
+SECTION 10 - PROJECT GOAL
+================================================================================
+
+Animotion should feel like a mix of:
+
+  DUOLINGO  - structured, gamified learning path with XP, quests, and
+              level-ups. Every session has a clear goal and reward.
+
+  BLENDER   - a real creative tool where you make actual animations.
+              Not a sandbox toy, but a production-capable editor.
+
+  AI MENTOR - personalised, conversational feedback that grows with you.
+              Ani knows your weaknesses and helps you improve them.
+
+  A GAME    - every action is rewarded, every skill improves, every session
+              leaves you better than before.
+
+The platform should never feel like homework. It should feel like levelling up
+a character. The user's animator skills are their character stats. The lessons
+are quests. The editor is their crafting table. Ani is their guide.
+
+
+================================================================================
+
+
+SECTION 11 - IMPORTANT RULES FOR FUTURE DEVELOPMENT
+================================================================================
+
+------------------------------------------------------------
+PRODUCT RULES
+------------------------------------------------------------
+
+Rule 1: No fake data in production features.
+  The leaderboard must only show real users. Skills must reflect real progress.
+  XP must be earned. Never use hardcoded arrays of fake users or stats.
+
+Rule 2: Fresh start for every new user.
+  Never preload XP, levels, skills, or completed lessons. Every account starts
+  at zero and earns everything through the platform.
+
+Rule 3: Every feature must feel interactive.
+  No static screens, no dead ends. There should always be something to click,
+  earn, or discover.
+
+Rule 4: Gamification is non-negotiable.
+  Every completed action should feel rewarding. XP toast, animation, or audio
+  feedback on every meaningful action.
+
+Rule 5: Learning by doing.
+  Lessons must have quizzes and practical tasks, not just reading material.
+  The user must produce something in every lesson.
+
+------------------------------------------------------------
+TECHNICAL RULES
+------------------------------------------------------------
+
+Rule 6: w.lessons does not exist.
+  Worlds have SECTIONS. Sections have LESSONS. Always use:
+    w.sections.flatMap(s => s.lessons)
+  Or use the ALL_LESSONS flat array from lib/curriculum.js.
+  Never reference w.lessons directly. This will cause a runtime crash.
+
+Rule 7: Skills always start at 0.
+  Use DEFAULT_SKILLS from lib/curriculum.js. This object is merged safely in
+  the reducer. Never hardcode skill values for new users.
+
+Rule 8: GAIN_SKILLS not UPDATE_SKILLS.
+  The store action type is GAIN_SKILLS with a deltas object. Example:
+    dispatch({ type: 'GAIN_SKILLS', deltas: { timing: 10, squash: 5 } })
+
+Rule 9: Server-side secrets only.
+  ANTHROPIC_API_KEY must never have the NEXT_PUBLIC_ prefix. It is always
+  proxied through /api/chat and never exposed to the browser.
+
+Rule 10: Sanitize all inputs.
+  Use sanitize() from lib/utils.js before storing any user-generated text.
+  This prevents XSS and injection attacks.
+
+Rule 11: All pages need 'use client'.
+  Every page component must start with 'use client'. Exceptions are:
+    - app/page.jsx (server-side redirect only)
+    - All route.js files (API routes, server-side only)
+
+Rule 12: DB operations must validate ownership.
+  All Supabase writes must include .eq('user_id', userId) or .eq('id', userId)
+  to prevent cross-user data access. Row Level Security is also enforced at
+  the database level.
+
+------------------------------------------------------------
+DESIGN RULES
+------------------------------------------------------------
+
+Rule 13: Keep it Wii/Nintendo.
+  Soft colours, rounded corners, playful interactions. No harsh shadows,
+  no aggressive colours, no corporate feel.
+
+Rule 14: Think mobile-friendly.
+  Layouts should degrade gracefully. Never assume a wide screen.
+
+Rule 15: Footer on every page.
+  "Made by Posh :)" must appear fixed bottom-right on all authenticated pages.
+  It is in components/layout/Footer.jsx and rendered by AppShell.
+
+Rule 16: Floating feedback button always visible.
+  The 💬 button is rendered in AppShell.jsx at the bottom-right of the screen
+  on every authenticated page. It opens FeedbackModal which shows the
+  contact email: takuwhy@gmail.com
+
+
+================================================================================
+
+
+SECTION 12 - FILE STRUCTURE REFERENCE
+================================================================================
+
+animotion/
+|
++-- app/
+|   |
+|   +-- api/
+|   |   +-- chat/route.js              Claude AI proxy (server-side only)
+|   |   +-- leaderboard/route.js       Real user rankings from DB
+|   |   +-- profile/route.js           Profile get and update (with skills)
+|   |   +-- projects/route.js          Project CRUD operations
+|   |
+|   +-- auth/
+|   |   +-- callback/route.js          Supabase OAuth handler
+|   |
+|   +-- coach/page.jsx                 AI chat + 12 animated skill bars
+|   +-- creator-hub/page.jsx           Creator showcase with filter
+|   +-- dashboard/page.jsx             Home hub with quests and stats
+|   +-- editor/page.jsx                Animation editor (main page)
+|   +-- leaderboard/page.jsx           Real user rankings
+|   +-- lessons/page.jsx               World > Section > Lesson flow
+|   +-- login/page.jsx                 Auth page (Google + email/password)
+|   +-- profile/page.jsx               Skills, stats, rank journey
+|   +-- progress/page.jsx              Visual zigzag node map
+|   +-- settings/page.jsx              App settings
+|   +-- videos/page.jsx                Video library from curriculum
+|   +-- globals.css                    Tailwind + custom global classes
+|   +-- layout.jsx                     Root layout with AppProvider
+|   +-- page.jsx                       Server-side redirect to /dashboard
+|
++-- components/
+|   |
+|   +-- editor/
+|   |   +-- ExportModal.jsx            MP4/GIF export with full settings
+|   |   +-- ProjectSettingsPanel.jsx   Canvas resolution, FPS, bg colour
+|   |
+|   +-- layout/
+|   |   +-- AppShell.jsx               Sidebar + TopBar + modals + floating button
+|   |   +-- Footer.jsx                 "Made by Posh :)"
+|   |   +-- Sidebar.jsx                Navigation with XP bar
+|   |   +-- TopBar.jsx                 XP badge, dark mode, diagnostics
+|   |
+|   +-- lessons/
+|   |   +-- ActiveLesson.jsx           5-step lesson flow + multi-question quiz
+|   |   +-- LessonCard.jsx             Lesson preview card
+|   |
+|   +-- ui/
+|       +-- DiagnosticsPanel.jsx       Dev diagnostics panel (opened by TopBar)
+|       +-- FeedbackModal.jsx          Feedback modal with takuwhy@gmail.com
+|       +-- LevelUpModal.jsx           Level-up celebration modal
+|       +-- Mascot.jsx                 Ani mascot with mood states + blink
+|       +-- OnboardingModal.jsx        First-time 5-step tutorial
+|       +-- ProjectsModal.jsx          Save/load animation projects UI
+|       +-- Spinner.jsx                Loading spinner
+|       +-- Toggle.jsx                 On/off toggle switch
+|       +-- XPBar.jsx                  XP progress bar with level
+|       +-- XPToast.jsx                Floating XP gained toast
+|       +-- YouTubeEmbed.jsx           Lazy thumbnail to inline play
+|
++-- hooks/
+|   +-- useAuth.js                     Session check + route guard + hydrate
+|   +-- useEditor.js                   Editor state (frames, layers, tools)
+|
++-- lib/
+|   +-- curriculum.js                  All worlds, sections, lessons, skills,
+|   |                                  ranks, quests, creators, ALL_LESSONS
+|   +-- db.js                          All Supabase operations (profiles,
+|   |                                  leaderboard, projects)
+|   +-- store.js                       Global state: AppProvider + useApp hook
+|   +-- supabase.js                    Browser client factory
+|   +-- utils.js                       xpForLevel, getRank, sanitize,
+|                                      validate, fmtXP, store helpers
+|
++-- supabase/
+|   +-- schema.sql                     Full DB schema - run once in Supabase
+|
++-- .env.local                         Environment variables template
++-- next.config.js
++-- package.json
++-- postcss.config.js
++-- tailwind.config.js
+
+
+================================================================================
+
+
+SECTION 13 - ENVIRONMENT VARIABLES
+================================================================================
+
+File: .env.local (never commit to git, already in .gitignore)
+
+Variable                        Description
+--------                        -----------
+NEXT_PUBLIC_SUPABASE_URL        Your Supabase project URL
+                                Get from: supabase.com > Project > Settings > API
+
+NEXT_PUBLIC_SUPABASE_ANON_KEY   Your Supabase anon/public key
+                                Get from: supabase.com > Project > Settings > API
+
+NEXT_PUBLIC_SITE_URL            Your site URL for OAuth redirects
+                                Local: http://localhost:3000
+                                Production: https://your-app.vercel.app
+
+ANTHROPIC_API_KEY               Anthropic Claude API key
+                                IMPORTANT: NO "NEXT_PUBLIC_" prefix
+                                Server-side only. Never expose to browser.
+                                Get from: console.anthropic.com/settings/keys
+
+------------------------------------------------------------
+FEATURE STATUS BY VARIABLE
+------------------------------------------------------------
+
+With all placeholders (no real keys):
+  - App loads and all pages render
+  - Dark mode and UI interactions work
+  - Lessons, progress map, video library work
+  - Animation editor works (draw, layers, undo/redo)
+  - Login will not persist between sessions
+  - Progress will not save between sessions
+  - Leaderboard will show empty state
+  - AI Coach will show configuration error
+  - Project save/load will not work
+
+With real Supabase keys:
+  - Real login (Google OAuth + email/password)
+  - Progress saved between sessions
+  - Real leaderboard with user rankings
+  - Project save/load cloud storage
+
+With real Anthropic key:
+  - AI Coach fully functional
+  - Skill progression from AI feedback
+
+
+================================================================================
+
+
+SECTION 14 - DATABASE SCHEMA SUMMARY
+================================================================================
+
+Run the file supabase/schema.sql in your Supabase SQL Editor once to set up
+the entire database.
+
+------------------------------------------------------------
+TABLE: user_profiles
+------------------------------------------------------------
+
+Column                Type      Default    Description
+------                ----      -------    -----------
+id                    uuid      -          Primary key, FK to auth.users
+display_name          text      null       User's display name
+xp                    integer   0          Total XP earned (starts at 0)
+level                 integer   1          Current level (starts at 1)
+completed_lessons     text[]    {}         Array of completed lesson IDs
+has_seen_tutorial     boolean   false      Whether onboarding was completed
+skills                jsonb     {}         Object of skill IDs to values (0-100)
+created_at            timestamptz now()   Row creation time
+updated_at            timestamptz now()   Last update time (auto-updated)
+
+------------------------------------------------------------
+TABLE: animation_projects
+------------------------------------------------------------
+
+Column                Type      Default           Description
+------                ----      -------           -----------
+id                    uuid      auto-generated    Primary key
+user_id               uuid      -                 FK to auth.users (owner)
+name                  text      Untitled Project  Project name
+frames                jsonb     []                Array of frame objects
+frame_data            jsonb     {}                Base64 PNG per frame ID
+layers                jsonb     []                Array of layer objects
+fps                   integer   12                Frames per second
+bg_color              text      #FFFFFF           Canvas background colour
+width                 integer   580               Canvas width in pixels
+height                integer   360               Canvas height in pixels
+created_at            timestamptz now()           Row creation time
+updated_at            timestamptz now()           Last update time (auto-updated)
+
+------------------------------------------------------------
+ROW LEVEL SECURITY
+------------------------------------------------------------
+
+RLS is enabled on both tables.
+Users can only read and write their own rows.
+Leaderboard query uses a separate policy allowing authenticated users to read
+display_name, xp, and level from all profiles.
+
+------------------------------------------------------------
+TRIGGERS
+------------------------------------------------------------
+
+handle_new_user():
+  Fires AFTER INSERT on auth.users.
+  Automatically creates a clean user_profiles row with:
+    xp = 0, level = 1, completed_lessons = {}, has_seen_tutorial = false,
+    skills = {}
+  Uses ON CONFLICT (id) DO NOTHING so it is safe to run multiple times.
+
+set_updated_at():
+  Fires BEFORE UPDATE on both tables.
+  Automatically sets updated_at = now() on every update.
+
+------------------------------------------------------------
+AFTER RUNNING schema.sql
+------------------------------------------------------------
+
+1. Go to Auth > Providers > Google and enable Google OAuth.
+   Add your Google Client ID and Client Secret.
+
+2. Go to Auth > URL Configuration > Site URL and set your domain.
+   Local: http://localhost:3000
+   Production: https://your-app.vercel.app
+
+3. Go to Auth > URL Configuration > Redirect URLs and add:
+   https://your-app.vercel.app/auth/callback
+
+
+================================================================================
+
+END OF ANIMOTION PROJECT CONTEXT FILE
+Version: 1.0
+"A platform that feels like Duolingo, Blender, an AI mentor, and a game."
+
+================================================================================

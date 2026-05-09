@@ -1,0 +1,289 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ──────────────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { font-family: 'Nunito', sans-serif; }
+  body { @apply antialiased; background: #EAF6FB; color: #1E3A4A; }
+  .dark body { background: #0D1F2D; color: #E0F4FB; }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,154,199,0.3); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,154,199,0.55); }
+
+  button, input, select, textarea { font-family: 'Nunito', sans-serif; }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px rgba(225,245,251,0.9) inset;
+    -webkit-text-fill-color: #1E3A4A;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}
+
+/* ── Wii U Design Tokens ───────────────────────────────────────────────────── */
+:root {
+  --wii-blue:          #009AC7;
+  --wii-blue-dark:     #007AAA;
+  --wii-blue-light:    #E1F5FB;
+  --wii-bg:            #EAF6FB;
+  --wii-card:          rgba(255,255,255,0.88);
+  --wii-border:        rgba(0,154,199,0.18);
+  --wii-shadow:        0 4px 16px rgba(0,120,180,0.12), 0 1px 4px rgba(0,0,0,0.05);
+  --wii-shadow-hover:  0 8px 28px rgba(0,120,180,0.20), 0 2px 8px rgba(0,0,0,0.07);
+  --wii-glow:          0 0 0 3px rgba(0,154,199,0.35), 0 4px 20px rgba(0,154,199,0.25);
+  --wii-radius:        20px;
+  --wii-radius-sm:     14px;
+  --wii-radius-pill:   999px;
+  --wii-transition:    all 0.18s cubic-bezier(0.34,1.26,0.64,1);
+}
+
+.dark {
+  --wii-bg:     #0D1F2D;
+  --wii-card:   rgba(20,45,65,0.88);
+  --wii-border: rgba(0,154,199,0.25);
+}
+
+/* ── Wii U Component Classes ───────────────────────────────────────────────── */
+@layer components {
+
+  /* Page fade-in */
+  .page {
+    animation: wii-fade-up 0.25s ease both;
+  }
+  @keyframes wii-fade-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Card — the core Wii U frosted tile */
+  .wii-card {
+    background: var(--wii-card);
+    border: 1.5px solid var(--wii-border);
+    border-radius: var(--wii-radius);
+    box-shadow: var(--wii-shadow);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    transition: var(--wii-transition);
+  }
+  .wii-card:hover { box-shadow: var(--wii-shadow-hover); }
+  .wii-card-sm { border-radius: var(--wii-radius-sm); }
+
+  /* Primary button */
+  .wii-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 20px;
+    border-radius: var(--wii-radius-pill);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    border: none;
+    transition: var(--wii-transition);
+    white-space: nowrap;
+  }
+  .wii-btn:active { transform: scale(0.96); }
+
+  .wii-btn-primary {
+    background: linear-gradient(135deg, var(--wii-blue), var(--wii-blue-dark));
+    color: white;
+    box-shadow: 0 4px 14px rgba(0,154,199,0.35);
+  }
+  .wii-btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(0,154,199,0.50);
+    transform: translateY(-1px);
+  }
+
+  .wii-btn-secondary {
+    background: var(--wii-blue-light);
+    color: var(--wii-blue);
+    border: 1.5px solid var(--wii-border);
+  }
+  .wii-btn-secondary:hover { background: rgba(0,154,199,0.12); }
+
+  .wii-btn-ghost {
+    background: rgba(255,255,255,0.6);
+    color: #5A7A8A;
+    border: 1.5px solid var(--wii-border);
+  }
+  .wii-btn-ghost:hover { background: rgba(255,255,255,0.9); color: var(--wii-blue); }
+
+  /* Input field */
+  .wii-input {
+    background: rgba(255,255,255,0.85);
+    border: 1.5px solid var(--wii-border);
+    border-radius: var(--wii-radius-sm);
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1E3A4A;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .wii-input:focus {
+    border-color: var(--wii-blue);
+    box-shadow: 0 0 0 3px rgba(0,154,199,0.15);
+  }
+
+  /* Section header label */
+  .wii-section-label {
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--wii-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.8;
+  }
+
+  /* Badge/pill */
+  .wii-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: var(--wii-radius-pill);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+
+  /* XP pill */
+  .wii-xp-pill {
+    background: rgba(255,179,71,0.12);
+    border: 1px solid rgba(255,179,71,0.3);
+    border-radius: var(--wii-radius-pill);
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #D4831A;
+  }
+
+  /* Stat box */
+  .wii-stat {
+    background: var(--wii-card);
+    border: 1.5px solid var(--wii-border);
+    border-radius: var(--wii-radius-sm);
+    padding: 14px 16px;
+    text-align: center;
+    box-shadow: var(--wii-shadow);
+  }
+  .wii-stat-num {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--wii-blue);
+    line-height: 1;
+  }
+  .wii-stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #9AB5C0;
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Progress bar */
+  .wii-progress-track {
+    height: 8px;
+    background: rgba(0,154,199,0.1);
+    border-radius: var(--wii-radius-pill);
+    overflow: hidden;
+  }
+  .wii-progress-fill {
+    height: 100%;
+    border-radius: var(--wii-radius-pill);
+    background: linear-gradient(90deg, var(--wii-blue), #52C97C);
+    transition: width 0.7s cubic-bezier(0.34,1.26,0.64,1);
+  }
+
+  /* Divider */
+  .wii-divider {
+    border: none;
+    height: 1px;
+    background: var(--wii-border);
+    margin: 12px 0;
+  }
+
+  /* Skill bar */
+  .wii-skill-track {
+    height: 6px;
+    background: rgba(0,154,199,0.1);
+    border-radius: var(--wii-radius-pill);
+    overflow: hidden;
+  }
+  .wii-skill-fill {
+    height: 100%;
+    border-radius: var(--wii-radius-pill);
+    transition: width 0.7s cubic-bezier(0.34,1.26,0.64,1);
+  }
+}
+
+/* ── Wave decoration ───────────────────────────────────────────────────────── */
+.wii-wave {
+  display: block;
+  width: 100%;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+/* ── XP toast animation ────────────────────────────────────────────────────── */
+@keyframes xp-pop {
+  0%   { opacity: 0; transform: translate(-50%, 0) scale(0.7); }
+  20%  { opacity: 1; transform: translate(-50%, -10px) scale(1.1); }
+  80%  { opacity: 1; transform: translate(-50%, -28px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -42px) scale(0.9); }
+}
+.xp-toast { animation: xp-pop 1.8s ease forwards; }
+
+/* ── Level-up animation ────────────────────────────────────────────────────── */
+@keyframes level-up {
+  0%   { transform: scale(0.6) rotate(-8deg); opacity: 0; }
+  60%  { transform: scale(1.08) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.animate-level-up { animation: level-up 0.55s cubic-bezier(0.34,1.26,0.64,1) both; }
+
+/* ── Mascot float ──────────────────────────────────────────────────────────── */
+@keyframes wii-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-5px); }
+}
+.animate-float { animation: wii-float 3.5s ease-in-out infinite; }
+
+/* ── Node glow (progress map) ──────────────────────────────────────────────── */
+@keyframes node-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,154,199,0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(0,154,199,0); }
+}
+.animate-node-glow { animation: node-glow 2s ease-in-out infinite; }
+
+/* ── Dashed ring spin (selected tile) ─────────────────────────────────────── */
+@keyframes wii-dash {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.wii-dash-ring { animation: wii-dash 1.6s linear infinite; }
+
+/* ── Focus mode ────────────────────────────────────────────────────────────── */
+.focus-wave {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 100px;
+  fill: rgba(0,154,199,0.06);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ── Scrollbar inside wii panels ───────────────────────────────────────────── */
+.wii-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.wii-scroll::-webkit-scrollbar-track { background: transparent; }
+.wii-scroll::-webkit-scrollbar-thumb { background: rgba(0,154,199,0.25); border-radius: 999px; }

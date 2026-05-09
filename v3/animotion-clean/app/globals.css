@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base resets ──────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { font-family: 'Nunito', sans-serif; }
+
+  body {
+    @apply bg-primary-xl text-gray-900 antialiased;
+  }
+
+  .dark body {
+    @apply bg-gray-950 text-gray-100;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-gray-300 dark:bg-gray-700 rounded-full; }
+
+  button, input, select, textarea {
+    font-family: 'Nunito', sans-serif;
+  }
+
+  /* Fix autofill background flash */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: inherit;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+}
+
+/* ── Reusable component classes (only standard Tailwind utilities) ─────────── */
+@layer components {
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all duration-200 select-none;
+  }
+  .btn:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply bg-primary text-white shadow-soft;
+  }
+  .btn-primary:hover:not(:disabled) {
+    @apply bg-primary-dark -translate-y-0.5 shadow-medium;
+  }
+  .btn-primary:active:not(:disabled) {
+    @apply translate-y-0 shadow-none;
+  }
+  .btn-secondary {
+    @apply bg-primary-light text-primary-dark;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    @apply bg-blue-100 -translate-y-0.5;
+  }
+  .btn-danger {
+    @apply bg-red-50 text-red-500 border border-red-200;
+  }
+  .btn-danger:hover:not(:disabled) {
+    @apply bg-red-100;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-soft;
+  }
+
+  /* Form inputs */
+  .field {
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm font-semibold outline-none transition-all duration-200 placeholder:text-gray-400;
+  }
+  .field:focus {
+    @apply border-primary ring-2 ring-blue-100 dark:ring-blue-900/40;
+  }
+  .field-error {
+    @apply border-red-400 ring-2 ring-red-100 dark:ring-red-900/40;
+  }
+
+  /* Tag pills */
+  .tag {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold;
+  }
+
+  /* Page entry animation */
+  .page {
+    @apply animate-fade-up;
+  }
+}
+
+/* ── Canvas cursors ─────────────────────────────────────────────────────── */
+.cursor-brush  { cursor: crosshair; }
+.cursor-eraser { cursor: cell; }
+
+/* ── Focus wave overlay ──────────────────────────────────────────────────── */
+.focus-wave {
+  position: fixed;
+  bottom: 0; left: 0;
+  width: 200%; height: 100px;
+  opacity: 0.05;
+  animation: waveBg 12s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+  fill: #5B9CF6;
+}
