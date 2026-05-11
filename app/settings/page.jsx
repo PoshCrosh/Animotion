@@ -26,7 +26,7 @@ function SectionCard({ title, children }) {
   return (
     <div className="wii-card p-5 mb-4">
       <h2 className="wii-section-label mb-1">{title}</h2>
-      <div>{children}</div>
+      {children}
     </div>
   );
 }
@@ -36,59 +36,53 @@ export default function SettingsPage() {
   const { state, dispatch } = useApp();
   const { dark, focusMode, skills } = state;
 
-  // Local UI-only settings (stored in localStorage)
   const [soundOn,      setSoundOn]      = useState(false);
   const [autoAdvance,  setAutoAdvance]  = useState(false);
   const [reminders,    setReminders]    = useState(false);
+  const [musicVol,     setMusicVol]     = useState(0.4);
+  const [musicMuted,   setMusicMuted]   = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
   const [exportMsg,    setExportMsg]    = useState('');
 
-  // Load preferences from localStorage on mount
   useEffect(() => {
     try {
-      setSoundOn(     JSON.parse(localStorage.getItem('animotion_sound')      ?? 'false'));
+      setSoundOn(     JSON.parse(localStorage.getItem('animotion_sound')       ?? 'false'));
       setAutoAdvance( JSON.parse(localStorage.getItem('animotion_autoadvance') ?? 'false'));
       setReminders(   JSON.parse(localStorage.getItem('animotion_reminders')   ?? 'false'));
+      setMusicVol(    parseFloat(localStorage.getItem('animotion_music_vol')   ?? '0.4'));
+      setMusicMuted(  JSON.parse(localStorage.getItem('animotion_music_muted') ?? 'false'));
     } catch {}
   }, []);
 
-  // ── Dark mode: apply class to <html> whenever dark changes ────────────────
+  // ── Dark mode: apply to <html> whenever state.dark changes ─────────────
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-    localStorage.setItem('animotion_dark', JSON.stringify(dark));
+    document.documentElement.classList.toggle('dark', !!dark);
   }, [dark]);
 
-  function toggleDark(v) {
-    dispatch({ type:'SET_DARK', v });
+  function toggleDark(v) { dispatch({ type:'SET_DARK', v }); }
+
+  function toggleSound(v) { setSoundOn(v); localStorage.setItem('animotion_sound', JSON.stringify(v)); }
+  function toggleAutoAdvance(v) { setAutoAdvance(v); localStorage.setItem('animotion_autoadvance', JSON.stringify(v)); }
+  function toggleReminders(v) { setReminders(v); localStorage.setItem('animotion_reminders', JSON.stringify(v)); }
+
+  function handleMusicVol(v) {
+    setMusicVol(v);
+    localStorage.setItem('animotion_music_vol', String(v));
+    // Dispatch event so Dashboard audio picks it up if open in another tab context
+    window.dispatchEvent(new CustomEvent('animotion-music-vol', { detail: { vol: v, muted: musicMuted } }));
   }
 
-  function toggleSound(v) {
-    setSoundOn(v);
-    localStorage.setItem('animotion_sound', JSON.stringify(v));
-  }
-
-  function toggleAutoAdvance(v) {
-    setAutoAdvance(v);
-    localStorage.setItem('animotion_autoadvance', JSON.stringify(v));
-  }
-
-  function toggleReminders(v) {
-    setReminders(v);
-    localStorage.setItem('animotion_reminders', JSON.stringify(v));
+  function handleMusicMute(v) {
+    setMusicMuted(v);
+    localStorage.setItem('animotion_music_muted', JSON.stringify(v));
+    window.dispatchEvent(new CustomEvent('animotion-music-vol', { detail: { vol: musicVol, muted: v } }));
   }
 
   function handleExport() {
     const merged = { ...DEFAULT_SKILLS, ...(skills ?? {}) };
-    const data = {
-      exportDate: new Date().toISOString(),
-      xp: state.xp,
-      level: state.level,
-      completedLessons: state.completedLessons,
-      skills: merged,
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
+    const blob = new Blob([JSON.stringify({ exportDate: new Date().toISOString(), xp: state.xp, level: state.level, completedLessons: state.completedLessons, skills: merged }, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
     a.href = url; a.download = 'animotion-progress.json'; a.click();
     URL.revokeObjectURL(url);
     setExportMsg('Downloaded! ✓');
@@ -97,7 +91,7 @@ export default function SettingsPage() {
 
   function handleReset() {
     if (!resetConfirm) { setResetConfirm(true); return; }
-    dispatch({ type: 'RESET' });
+    dispatch({ type:'RESET' });
     setResetConfirm(false);
   }
 
@@ -106,7 +100,6 @@ export default function SettingsPage() {
   return (
     <AppShell user={user}>
       <div className="page" style={{ maxWidth:640 }}>
-        {/* Header */}
         <div className="wii-card p-5 mb-6 flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl"
             style={{ background:'linear-gradient(135deg,#9CA3AF,#6B7280)', boxShadow:'0 4px 16px rgba(156,163,175,0.35)' }}>⚙️</div>
@@ -118,7 +111,6 @@ export default function SettingsPage() {
 
         <SectionCard title="🎨 APPEARANCE">
           <SettingRow icon="🌙" label="Dark Mode" desc="Easy on the eyes at night">
-            {/* ← Fixed: was not applying dark class. Now dispatches SET_DARK which triggers useEffect above */}
             <Toggle value={dark} onChange={toggleDark}/>
           </SettingRow>
           <SettingRow icon="🎯" label="Focus Mode" desc="Dims the sidebar for distraction-free work">
@@ -126,43 +118,55 @@ export default function SettingsPage() {
           </SettingRow>
         </SectionCard>
 
-        <SectionCard title="📖 LEARNING">
-          <SettingRow icon="🔔" label="Quest Reminders" desc="Shows a reminder badge when daily quests are incomplete">
-            <Toggle value={reminders} onChange={toggleReminders}/>
+        <SectionCard title="🎵 MUSIC & SOUND">
+          <SettingRow icon="🎵" label="Dashboard Music" desc="Background music plays on the dashboard">
+            <Toggle value={!musicMuted} onChange={v => handleMusicMute(!v)}/>
           </SettingRow>
-          <SettingRow icon="🎵" label="Sound Effects" desc="XP and level-up notification sounds">
+          <SettingRow icon="🔊" label="Music Volume" desc="Controls dashboard background music level">
+            <div className="flex items-center gap-3">
+              <input type="range" min={0} max={1} step={0.05} value={musicMuted ? 0 : musicVol}
+                onChange={e => { handleMusicVol(+e.target.value); setMusicMuted(false); }}
+                className="w-28 accent-[#009AC7]" />
+              <span className="text-[12px] font-black w-8 text-right" style={{ color:'#009AC7' }}>
+                {musicMuted ? '0' : Math.round(musicVol * 100)}%
+              </span>
+            </div>
+          </SettingRow>
+          <SettingRow icon="🔔" label="Sound Effects" desc="XP and level-up notification sounds">
             <Toggle value={soundOn} onChange={toggleSound}/>
           </SettingRow>
-          <SettingRow icon="⚡" label="Auto-advance Lessons" desc="Skip intro step on lessons you've already seen">
+        </SectionCard>
+
+        <SectionCard title="📖 LEARNING">
+          <SettingRow icon="🔔" label="Quest Reminders" desc="Badge when daily quests are incomplete">
+            <Toggle value={reminders} onChange={toggleReminders}/>
+          </SettingRow>
+          <SettingRow icon="⚡" label="Auto-advance Lessons" desc="Skip intro on revisited lessons">
             <Toggle value={autoAdvance} onChange={toggleAutoAdvance}/>
           </SettingRow>
         </SectionCard>
 
         <SectionCard title="💾 DATA">
-          <SettingRow icon="☁️" label="Cloud Sync" desc="Progress automatically saved to your account">
+          <SettingRow icon="☁️" label="Cloud Sync" desc="Progress saved to your account automatically">
             <span className="text-[11px] font-black px-2 py-1 rounded-full"
               style={{ background:'rgba(82,201,124,0.15)', color:'#52C97C' }}>
               {user ? '✓ Active' : 'Sign in to enable'}
             </span>
           </SettingRow>
-          <SettingRow icon="📤" label="Export Progress" desc="Download your XP, skills, and completed lessons as JSON">
+          <SettingRow icon="📤" label="Export Progress" desc="Download XP, skills, lessons as JSON">
             <button onClick={handleExport} className="wii-btn wii-btn-secondary text-xs">
               {exportMsg || 'Export JSON'}
             </button>
           </SettingRow>
-          <SettingRow icon="🗑️" label="Reset Progress" desc="Permanently wipe all XP, skills, and lesson progress">
-            <button
-              onClick={handleReset}
-              className="wii-btn text-xs"
-              style={{ background: resetConfirm?'rgba(255,87,87,0.85)':'rgba(255,87,87,0.1)', color: resetConfirm?'white':'#FF5757', border:'1.5px solid rgba(255,87,87,0.3)' }}>
+          <SettingRow icon="🗑️" label="Reset Progress" desc="Permanently wipe all XP, skills, and lessons">
+            <button onClick={handleReset} className="wii-btn text-xs"
+              style={{ background:resetConfirm?'rgba(255,87,87,0.85)':'rgba(255,87,87,0.1)', color:resetConfirm?'white':'#FF5757', border:'1.5px solid rgba(255,87,87,0.3)' }}>
               {resetConfirm ? '⚠️ Confirm reset' : 'Reset'}
             </button>
           </SettingRow>
           {resetConfirm && (
-            <div className="rounded-2xl p-3 mt-2" style={{ background:'rgba(255,87,87,0.08)', border:'1px solid rgba(255,87,87,0.2)' }}>
-              <p className="text-[11px] font-bold" style={{ color:'#FF5757' }}>
-                ⚠️ This will wipe ALL your progress permanently. Click "Confirm reset" again to proceed, or refresh to cancel.
-              </p>
+            <div className="rounded-2xl p-3 mt-2" style={{ background:'rgba(255,87,87,0.06)', border:'1px solid rgba(255,87,87,0.2)' }}>
+              <p className="text-[11px] font-bold" style={{ color:'#FF5757' }}>⚠️ This wipes ALL progress permanently. Click "Confirm reset" again to proceed.</p>
             </div>
           )}
         </SectionCard>
