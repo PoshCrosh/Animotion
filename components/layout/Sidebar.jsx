@@ -12,24 +12,29 @@ const NAV = [
     { href: '/lessons',     label: 'Lessons',    icon: '📖' },
     { href: '/progress',    label: 'Progress',   icon: '🗺️' },
     { href: '/videos',      label: 'Videos',     icon: '▶️' },
-    { href: '/creator-hub', label: 'Creators',   icon: '🎬', badge: 'NEW' },
+    { href: '/creator-hub', label: 'Creators',   icon: '🎬' },
   ]},
   { section: 'CREATE', items: [
     { href: '/editor',      label: 'Editor',     icon: '✏️' },
     { href: '/coach',       label: 'AI Coach',   icon: '🤖', badge: 'AI' },
-    { href: '/roadmap',     label: 'Roadmap',    icon: '🧭', badge: 'AI' },
-    { href: '/challenges',  label: 'Challenges', icon: '⚔️', badge: 'NEW' },
+    { href: '/skills',      label: 'Skills',     icon: '📊' },
+    { href: '/quests',      label: 'Daily Quests',icon: '🎯' },
+  ]},
+  { section: 'COMMUNITY', items: [
+    { href: '/leaderboard', label: 'Leaderboard',icon: '🏆' },
+    { href: '/community',   label: 'Community',  icon: '👥', badge: 'NEW' },
+    { href: '/shop',        label: 'Shop',       icon: '🛍️', badge: 'SOON' },
   ]},
   { section: 'ACCOUNT', items: [
-    { href: '/leaderboard', label: 'Leaderboard',icon: '🏆' },
     { href: '/profile',     label: 'Profile',    icon: '👤' },
     { href: '/settings',    label: 'Settings',   icon: '⚙️' },
   ]},
 ];
 
 const BADGE_BG = {
-  AI:  'linear-gradient(135deg,#9B7FEA,#7C5FD4)',
-  NEW: 'linear-gradient(135deg,#52C97C,#3DAD65)',
+  AI:   'linear-gradient(135deg,#9B7FEA,#7C5FD4)',
+  NEW:  'linear-gradient(135deg,#52C97C,#3DAD65)',
+  SOON: 'linear-gradient(135deg,#9CA3AF,#6B7280)',
 };
 
 export default function Sidebar({ user }) {
